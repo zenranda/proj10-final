@@ -299,7 +299,7 @@ def getbusy():
     if curr_db == 0:                            #if there's not a loaded list, add a new list to the database
         collection.insert({"type" : "freebusy", "tag" : id, "entry" : grabbeddates, "start" : starttime, "end" : endtime })   #add this to the DB
     
-    result = get_freebusy.get_freebusy(grabbeddates, starttime, endtime)  #gets the newest list with both entries, then processes it
+    result = get_freebusy.get_freebusy(grabbeddates, starttime.isoformat(), endtime.isoformat())  #gets the newest list with both entries, then processes it
 
     flask.g.busy = sorted(result[1], key=str.lower)  #defines flask.g.busy, sorts it. jinja2 formats this
     flask.g.free = sorted(result[0], key=str.lower)  #defines flask.g.free, sorts it. jinja2 formats this
