@@ -27,7 +27,7 @@ def test_overlap():      #Given a sample list, check to see if its dates overlap
     ranges = [['2016-11-20T08:30:00', '2016-11-20T10:30:00'], ['2016-11-20T11:00:00', '2016-11-20T15:00:00']]
     assert (date_chopper.date_overlap(ranges)) == False
     
-    ranges = [['2016-11-20T08:30:00', '2016-11-20T10:30:00'], ['2016-11-20T11:00:00', '2016-11-20T15:00:00'], ['2016-11-20T16:00:00', '2016-11-20T17:00:00'], ['2016-11-20T17:00:00', '2016-11-20T19:00:00']]
+    ranges = [['2016-11-20T08:30:00', '2016-11-20T10:30:00'], ['2016-11-20T11:00:00', '2016-11-20T15:00:00'], ['2016-11-20T16:00:00', '2016-11-20T18:00:00'], ['2016-11-20T17:00:00', '2016-11-20T19:00:00']]
     assert (date_chopper.date_overlap(ranges)) == True
     
     ranges = [['2016-11-20T08:30:00', '2016-11-20T10:30:00'], ['2016-11-20T10:30:00', '2016-11-20T13:00:00'], ['2016-11-20T13:00:00', '2016-11-20T14:00:00'], ['2016-11-20T14:10:00', '2016-11-20T16:00:00']]
@@ -48,7 +48,7 @@ def test_underlap():         #tests if the program can detect start times that g
     
     ranges = [['2016-11-20T08:30:00', '2016-11-20T10:30:00'], ['2016-11-20T11:00:00', '2016-11-20T15:00:00']]
     start = arrow.get('2016-11-20T10:00:00')
-    assert (date_chopper.date_underlap(ranges, start)) == True
+    assert (date_chopper.date_underlap(ranges, start)) == False
     
     
 def test_db():                      #tests basic DB operation
