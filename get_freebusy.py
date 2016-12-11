@@ -8,7 +8,6 @@ def get_freebusy(ranges, start, end):
 # then puts them in a sorted list, finalized and ready to be read by the user.
 #
 # Some of these loops are a little convoluted, there's probably a better way to do this.
-
     if ranges == []:        #if the free/busy blocks are empty, return empty list (prevents indexing crashes)
         free = []
         busy = []
@@ -33,20 +32,22 @@ def get_freebusy(ranges, start, end):
     for item in daylist:                                        #overlap logic; searches through the list of items and changes start/end time
         x = 0
         i = 1
-        dellist = []
+        set = 0
         while i <= len(item)/2:
             if arrow.get(item[x][1]) > arrow.get(item[i][0]):   #if the end time of one is after the start time of the other
                 if arrow.get(item[i][1]) < arrow.get(item[x][1]):   #if the end time of one is before the end time of the other (ie: full overlap)
-                    dellist.append(i)
+                    set = 1
                 if arrow.get(item[i][1]) > arrow.get(item[x][1]):    #if the end time of the other is after the end time of the first
-                    item[x][1] = item[i][1]                        #set the end time of the first to the end time of the second (in essence, merge the two)
-                    dellist.append(i)
+                    item[x][1] = item[i][1]                        #set the end time of the first to the end time of the second (in essence, merge the two
+                    set = 1
+                if set == 1:
+                    del item[i]
+                    x = -2
+                    i = -1
+                    set = 0
 
             x += 2
             i += 2
-            for element in dellist:
-                del item[element]
-
 
     startdelta = start                                                                      #if the dates start/end before/after our range starts or ends
     enddelta = startdelta.replace(hour=arrow.get(end).hour, minute = arrow.get(end).minute)
@@ -58,7 +59,7 @@ def get_freebusy(ranges, start, end):
             if arrow.get(elem[1]) > enddelta.to('local'):   #if the end time is after our end time, make its end time equal to it
                 elem[1] = enddelta.isoformat()
             if arrow.get(elem[0]) > arrow.get(elem[1]):          #if the event starts after it ends, then just remove it
-                    deldex.append(elem)
+                deldex.append(elem)
                         
 
         startdelta = startdelta.replace(days=+1)
