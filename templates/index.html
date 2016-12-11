@@ -46,6 +46,9 @@
     </ul>
   {% endif %}
 {% endwith %}
+{% if g.injecting is defined %}
+    <br><h1>Inject mode!</h1>
+{% endif %}
 
 <h2>Date range</h2>
   <form action="/setrange" method="post">
@@ -116,6 +119,17 @@
     {% for itm in g.free %}
         {{itm}} <br>
     {% endfor %}
+    <br>
+    {% if g.url is defined %}
+        <h4> Your schedule's url: &nbsp {{g.url}} </h4>
+    {% endif %}
+    {% if g.injection is defined %}
+        <h4>Schedule ID = {{g.dbcode}} </h4>
+        <form action = "/inject" method="post">
+        <h5>Inject your free/busy times into this schedule?</h5><br>
+        <input type="submit" value = "Inject!">
+        </form>
+    {% endif %}
 {% endif %}
     
 
