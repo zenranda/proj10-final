@@ -2,23 +2,6 @@ import arrow
 from operator import itemgetter
 
 
-def date_chomper(array):     #function to combine overlapping dates. Recursive. Used on busy times for each day.
-    for item in array:
-        x = 0
-        while x < len(item) - 1:
-            if arrow.get(item[x][1]) > arrow.get(item[x+1][0]):   #if the end time of one is after the start time of the other
-                if arrow.get(item[x+1][1]) < arrow.get(item[x][1]):   #if the end time of one is before the end time of the other (ie: full overlap)
-                    del item[x+1]
-                    date_chomper(array)
-                    return
-                if arrow.get(item[x+1][1]) > arrow.get(item[x][1]):    #if the end time of the other is after the end time of the first
-                    item[x][1] = item[x+1][1]                        #set the end time of the first to the end time of the second (in essence, merge the two)
-                    del item[x+1]
-                    date_chomper(array)
-                    return
-            x += 1
-
-
 def get_freebusy(ranges, start, end):
 #Given a date/time range and a list of lists containing start/end times for busy blocks,
 # finds the free time, the busy time, truncates them if applicable (ie: if they go over/under the maximum/minimum range)
@@ -47,10 +30,22 @@ def get_freebusy(ranges, start, end):
                 currday = currday.replace(days=+1)
 
 
-                
-                
-    for item in daylist:
-        date_chomper(item)
+    for item in daylist:                                        #overlap logic; searches through the list of items and changes start/end time
+        x = 0
+        i = 1
+        dellist = []
+        while i <= len(item)/2:
+            if arrow.get(item[x][1]) > arrow.get(item[i][0]):   #if the end time of one is after the start time of the other
+                if arrow.get(item[i][1]) < arrow.get(item[x][1]):   #if the end time of one is before the end time of the other (ie: full overlap)
+                    dellist.append(i)
+                if arrow.get(item[i][1]) > arrow.get(item[x][1]):    #if the end time of the other is after the end time of the first
+                    item[x][1] = item[i][1]                        #set the end time of the first to the end time of the second (in essence, merge the two)
+                    dellist.append(i)
+
+            x += 2
+            i += 2
+            for element in dellist:
+                del item[element]
 
 
     startdelta = start                                                                      #if the dates start/end before/after our range starts or ends
@@ -63,7 +58,7 @@ def get_freebusy(ranges, start, end):
             if arrow.get(elem[1]) > enddelta.to('local'):   #if the end time is after our end time, make its end time equal to it
                 elem[1] = enddelta.isoformat()
             if arrow.get(elem[0]) > arrow.get(elem[1]):          #if the event starts after it ends, then just remove it
-                deldex.append(elem)
+                    deldex.append(elem)
                         
 
         startdelta = startdelta.replace(days=+1)
