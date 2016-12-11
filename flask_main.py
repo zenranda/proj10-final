@@ -60,6 +60,7 @@ formdatestart = 0
 formdateend = 0
 
 curr_db = 0     #database we're currently looking at. Global so its value can be kept from function to function.
+curr_id = 0
 
 app = flask.Flask(__name__)
 app.debug=CONFIG.DEBUG
@@ -253,22 +254,24 @@ def setrange():
     
 @app.route('/db/<key>')
 def load_db(key): # loads the selectd db, if valid
-    global curr_db
+    global curr_db, curr_id
     scanned = collection.find( { "tag" : key }) #queries the database for the matching item...
-    if scanned == None:
+    print(scanned)
+    for item in scanned:
+        pro = item
+    print(pro["entry"])
+    
+    if scanned  == None:
         return render_template("index.html")        #...if we don't get anything, just go back to the start
         
-    assemble = []
-    for item in scanned:
-        assemble.append(item)
-        print(item)
-    insert = get_freebusy.get_freebusy(assemble, scanned["start"], scanned["end"])  #loads list, then processes it
+    insert = get_freebusy.get_freebusy(pro["entry"], arrow.get(pro["start"]), arrow.get(pro["end"]))  #loads list, then processes it
         
-    flask.g.busy = sorted(result[1], key=str.lower)  #defines flask.g.busy, sorts it. jinja2 formats this
-    flask.g.free = sorted(result[0], key=str.lower)  #defines flask.g.free, sorts it. jinja2 formats this
+    flask.g.busy = sorted(insert[1], key=str.lower)  #defines flask.g.busy, sorts it. jinja2 formats this
+    flask.g.free = sorted(insert[0], key=str.lower)  #defines flask.g.free, sorts it. jinja2 formats this
     flask.g.dbcode = key
     flask.g.injection = True
-    curr_db = scanned["entry"]
+    curr_db = pro["entry"]
+    curr_id = pro["tag"]
     return render_template("index.html")
     
 @app.route('/inject', methods =['POST'])         #if we want to inject something, redo the calendar select forms
@@ -278,7 +281,7 @@ def inject():
 
 @app.route("/getTime", methods=['POST'])
 def getbusy():
-    global formdateend, formdatestart, curr_db
+    global formdateend, formdatestart, curr_db, curr_id
     
     starttime = request.form["startTime"]         #get auth credentials, form data
     endtime = request.form["endTime"]
@@ -290,22 +293,29 @@ def getbusy():
     endtime = arrow.get(formdateend).replace(hour=int(endtime))
     
     grabbeddates = list_busy_times(gcal, endtime.isoformat(), starttime.isoformat(), sel) #gets calendar busy times
-
-    id = id_generator()
+    print(grabbeddates)
+    if curr_id == 0:
+       id = id_generator()
+    else:
+        id = curr_id
     if curr_db != 0:                            #if there's a loaded list, then merge (inject)
         for item in curr_db:
             grabbeddates.append(item)           #merges old and new list
-        collection.update( { "tag" : id}, { "$set" : { "entry" : new_blocks}})  #writes back to the database, overwrites old list
+        collection.update( { "tag" : id}, { "$set" : { "entry" : grabbeddates}})  #writes back to the database, overwrites old list
     if curr_db == 0:                            #if there's not a loaded list, add a new list to the database
-        collection.insert({"type" : "freebusy", "tag" : id, "entry" : grabbeddates, "start" : starttime, "end" : endtime })   #add this to the DB
+        collection.insert({"type" : "freebusy", "tag" : id, "entry" : grabbeddates, "start" : starttime.isoformat(), "end" : endtime.isoformat() })   #add this to the DB
     
-    result = get_freebusy.get_freebusy(grabbeddates, starttime.isoformat(), endtime.isoformat())  #gets the newest list with both entries, then processes it
+    result = get_freebusy.get_freebusy(grabbeddates, starttime, endtime)  #gets the newest list with both entries, then processes it
 
     flask.g.busy = sorted(result[1], key=str.lower)  #defines flask.g.busy, sorts it. jinja2 formats this
     flask.g.free = sorted(result[0], key=str.lower)  #defines flask.g.free, sorts it. jinja2 formats this
     flask.g.dbcode = id
     flask.g.url = flask.url_for("index", _external=True)
-    flask.g.url = str(flask.g.url) + "/db/" + str(id)
+    flask.g.url = str(flask.g.url)[:-6] + "/db/" + str(id)
+    if curr_db != 0:  #if we're in injection mode, leave injection mode
+        curr_db = 0
+    if curr_id != 0:
+        curr_id = 0
     return render_template("index.html")
 
 
