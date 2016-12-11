@@ -36,20 +36,9 @@
 <div class="container">
 
 <h1>Free/Busy times</h1>
-
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
 {% if g.injecting is defined %}
-    <br><h1>Inject mode!</h1>
+    <br><h1 style="color : #E933FF ">Inject mode!</h1>
 {% endif %}
-
 <h2>Date range</h2>
   <form action="/setrange" method="post">
   <input type="text" name="daterange" size="12"
@@ -121,7 +110,7 @@
     {% endfor %}
     <br>
     {% if g.url is defined %}
-        <h4> Your schedule's url: &nbsp {{g.url}} </h4>
+        <h4 style="color :#333CFF"> Your schedule's url: &nbsp {{g.url}} </h4>
     {% endif %}
     {% if g.injection is defined %}
         <h4>Schedule ID = {{g.dbcode}} </h4>
